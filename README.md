@@ -1,4 +1,4 @@
-# MarketPulse 📈
+# MarketPulse
 
 > Real-time market data pipeline - Kafka · PySpark Structured Streaming · TimescaleDB · Grafana
 
