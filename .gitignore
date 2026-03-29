@@ -1,0 +1,19 @@
+# Data
+data/raw/
+*.csv
+*.parquet
+
+# Secrets
+.env
+
+# MLflow
+mlruns/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+
+# Mac
+.DS_Store
