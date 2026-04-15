@@ -169,6 +169,42 @@ open http://localhost:5001   # MLflow
 
 ---
 
+## Training with yfinance (Development)
+
+For cost-free development and testing, SignalStack supports training models with **yfinance** (free historical data):
+
+```bash
+# Train all models (LSTM, XGBoost, Isolation Forest) using yfinance
+python -m training.train \
+  --symbols AAPL,TSLA,MSFT,NVDA \
+  --start 2024-01-01 \
+  --end 2024-11-30 \
+  --experiment signalstack-dev \
+  --data-source yfinance
+
+# Train specific model
+python -m training.train \
+  --symbols AAPL \
+  --start 2024-06-01 --end 2024-12-31 \
+  --model lstm \
+  --data-source yfinance \
+  --seq-len 30 --epochs 50
+```
+
+**Benefits of yfinance training**:
+- ✅ **Free** - no API key or charges
+- ✅ **Fast** - 10–30 min for 6+ months of training on CPU
+- ✅ **Reproducible** - consistent across machines
+- ✅ **Perfect for MVP** - validates idea before Polygon.io production
+
+**Two-tier approach**:
+1. **Development**: Train with yfinance → fast feedback → iterate
+2. **Production Testing**: Backfill 1–2 weeks with Polygon → validate on real data → deploy
+
+See [QUICKSTART.md](QUICKSTART.md) for detailed training guide.
+
+---
+
 ## Performance targets
 
 | Metric | Target |
@@ -203,7 +239,10 @@ TimescaleDB is PostgreSQL with a time-series extension - standard SQL, mature to
 - [x] Grafana provisioning - datasource + dashboard config
 - [x] Multi-stage Dockerfile
 - [x] GitHub Actions CI - lint, test, Docker build
-- [ ] ML training - LSTM, XGBoost, Isolation Forest + MLflow tracking
+- [x] ML training - LSTM, XGBoost, Isolation Forest + MLflow tracking
+- [x] yfinance data loader - free training data source (development)
+- [x] TimescaleDB data loader - production feature store
+- [x] Training script with dual data sources (yfinance / TimescaleDB)
 - [ ] FastAPI inference API
 - [ ] Grafana ML dashboards - anomaly overlay, drift monitor
 - [ ] Performance benchmarks (measured)

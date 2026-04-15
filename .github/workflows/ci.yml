@@ -1,0 +1,95 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install ruff
+        run: pip install ruff mypy
+      - name: Ruff lint
+        run: ruff check .
+      - name: Ruff format check
+        run: ruff format --check .
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: timescale/timescaledb:latest-pg16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: signalstack_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Apply schema
+        env:
+          PGPASSWORD: password
+        run: |
+          psql -h localhost -U postgres -d signalstack_test -f storage/schema.sql
+
+      - name: Run tests
+        env:
+          TIMESCALE_DSN: postgresql://postgres:password@localhost:5432/signalstack_test
+          KAFKA_BOOTSTRAP_SERVERS: localhost:9092
+          POLYGON_API_KEY: test_key
+          LOG_LEVEL: WARNING
+        run: |
+          pytest tests/ -v --tb=short --asyncio-mode=auto
+
+  docker:
+    name: Docker build
+    runs-on: ubuntu-latest
+    needs: [lint, test]
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build ingestion image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          target: ingestion
+          push: false
+          tags: signalstack-ingest:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Build streaming image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          target: streaming
+          push: false
+          tags: signalstack-stream:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

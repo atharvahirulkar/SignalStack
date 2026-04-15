@@ -1,0 +1,141 @@
+{
+  "uid": "signalstack-main",
+  "title": "SignalStack — Market Signals",
+  "tags": ["signalstack", "ml", "market"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "5s",
+  "time": { "from": "now-1h", "to": "now" },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Trade Volume (1m buckets)",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+      "datasource": { "uid": "timescaledb-main" },
+      "targets": [
+        {
+          "refId": "A",
+          "rawSql": "SELECT time_bucket('1 minute', time) AS time, symbol, sum(size) AS volume FROM trades WHERE $__timeFilter(time) GROUP BY 1, 2 ORDER BY 1",
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "short", "custom": { "lineWidth": 1, "fillOpacity": 10 } }
+      }
+    },
+    {
+      "id": 2,
+      "title": "OHLCV — 1m Close Price",
+      "type": "timeseries",
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
+      "datasource": { "uid": "timescaledb-main" },
+      "targets": [
+        {
+          "refId": "A",
+          "rawSql": "SELECT time, symbol, close FROM ohlcv_1m WHERE $__timeFilter(time) ORDER BY time",
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "currencyUSD", "custom": { "lineWidth": 2 } }
+      }
+    },
+    {
+      "id": 3,
+      "title": "Anomaly Events",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
+      "datasource": { "uid": "timescaledb-main" },
+      "targets": [
+        {
+          "refId": "A",
+          "rawSql": "SELECT time, symbol, anomaly_score FROM anomalies WHERE $__timeFilter(time) AND is_anomaly = true ORDER BY time",
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": { "mode": "fixed", "fixedColor": "red" },
+          "custom": { "drawStyle": "points", "pointSize": 6 }
+        }
+      }
+    },
+    {
+      "id": 4,
+      "title": "Feature Store — Realized Vol 5m",
+      "type": "timeseries",
+      "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
+      "datasource": { "uid": "timescaledb-main" },
+      "targets": [
+        {
+          "refId": "A",
+          "rawSql": "SELECT time, symbol, realized_vol_5m FROM features WHERE $__timeFilter(time) ORDER BY time",
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "percentunit", "custom": { "lineWidth": 1 } }
+      }
+    },
+    {
+      "id": 5,
+      "title": "Anomaly Count (last 1h)",
+      "type": "stat",
+      "gridPos": { "x": 0, "y": 16, "w": 4, "h": 4 },
+      "datasource": { "uid": "timescaledb-main" },
+      "targets": [
+        {
+          "refId": "A",
+          "rawSql": "SELECT count(*) FROM anomalies WHERE is_anomaly = true AND time > now() - interval '1 hour'",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "short", "color": { "mode": "thresholds" },
+          "thresholds": { "steps": [
+            { "value": 0, "color": "green" },
+            { "value": 5, "color": "yellow" },
+            { "value": 20, "color": "red" }
+          ]}
+        }
+      }
+    },
+    {
+      "id": 6,
+      "title": "Trades Ingested (last 1h)",
+      "type": "stat",
+      "gridPos": { "x": 4, "y": 16, "w": 4, "h": 4 },
+      "datasource": { "uid": "timescaledb-main" },
+      "targets": [
+        {
+          "refId": "A",
+          "rawSql": "SELECT count(*) FROM trades WHERE time > now() - interval '1 hour'",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "short", "color": { "mode": "fixed", "fixedColor": "blue" } }
+      }
+    },
+    {
+      "id": 7,
+      "title": "Active Symbols",
+      "type": "stat",
+      "gridPos": { "x": 8, "y": 16, "w": 4, "h": 4 },
+      "datasource": { "uid": "timescaledb-main" },
+      "targets": [
+        {
+          "refId": "A",
+          "rawSql": "SELECT count(distinct symbol) FROM trades WHERE time > now() - interval '1 hour'",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "short", "color": { "mode": "fixed", "fixedColor": "purple" } }
+      }
+    }
+  ]
+}
