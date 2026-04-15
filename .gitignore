@@ -1,19 +1,36 @@
-# Data
-data/raw/
-*.csv
-*.parquet
-
 # Secrets
 .env
-
-# MLflow
-mlruns/
 
 # Python
 __pycache__/
 *.pyc
+*.pyo
 .venv/
+venv/
 *.egg-info/
+.mypy_cache/
+.ruff_cache/
 
-# Mac
+# ML artifacts (large binaries — manage separately or via DVC)
+artifacts/
+mlruns/
+mlflow.db
+*.pt
+*.pkl
+*.onnx
+
+# Data
+data/
+*.csv
+*.parquet
+
+# Spark checkpoints
+/tmp/signalstack-checkpoints/
+
+# macOS
 .DS_Store
+
+# IDE
+.idea/
+.vscode/
+*.swp
