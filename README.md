@@ -2,7 +2,6 @@
 
 > Real-time ML systems pipeline - Polygon.io · Kafka · PySpark · TimescaleDB · Grafana · MLflow
 
-![Status](https://img.shields.io/badge/status-in%20development-yellow)
 ![Python](https://img.shields.io/badge/python-3.11-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
